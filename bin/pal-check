@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# pal-check: does this Arabic sound genuinely Palestinian? (verdict + city scores + word flags)
+#   pal-check [--formal] [--json] "text"     or     pal-check < file.txt
+exec "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/pal-sbx" pal_check.py "$@"

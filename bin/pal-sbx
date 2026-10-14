@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# pal-sbx: run a pal-* python tool inside the local venv.
+# If bubblewrap (bwrap) is installed, the tool runs in a sandbox: no network, no home dir,
+# read-only repo. Set PAL_NO_SANDBOX=1 to skip the sandbox (e.g. on macOS).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+PY="$ROOT/.venv/bin/python"
+DATA="${CAMELTOOLS_DATA:-$ROOT/.camel-data}"
+[ -x "$PY" ] || { echo "pal: not installed yet, run $ROOT/install.sh" >&2; exit 3; }
+TOOL="$1"; shift
+if [ -z "${PAL_NO_SANDBOX:-}" ] && command -v bwrap >/dev/null 2>&1; then
+  EB=()
+  for f in ld.so.cache ld.so.conf ld.so.conf.d alternatives localtime; do
+    [ -e /etc/$f ] && EB+=(--ro-bind /etc/$f /etc/$f)
+  done
+  for d in /lib /lib64 /bin; do [ -L $d ] || { [ -d $d ] && EB+=(--ro-bind $d $d); }; done
+  for d in /lib /lib64 /bin; do [ -L $d ] && EB+=(--symlink "$(readlink $d)" $d); done
+  exec bwrap --unshare-all --die-with-parent --new-session \
+    --ro-bind /usr /usr "${EB[@]}" --proc /proc --dev /dev --tmpfs /tmp --tmpfs /home --tmpfs /root \
+    --ro-bind "$ROOT" /pal --ro-bind "$DATA" /pal-data --chdir /tmp \
+    --clearenv --setenv HOME /tmp --setenv PATH /usr/bin --setenv CAMELTOOLS_DATA /pal-data \
+    --setenv LANG C.UTF-8 --setenv PYTHONDONTWRITEBYTECODE 1 --setenv PAL_SKILL /pal \
+    /pal/.venv/bin/python -I -B "/pal/lib/$TOOL" "$@"
+fi
+CAMELTOOLS_DATA="$DATA" PAL_SKILL="$ROOT" exec "$PY" -I -B "$ROOT/lib/$TOOL" "$@"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# pal-word: find the Palestinian word for an English, MSA, Gulf or Egyptian word.
+#   pal-word now  |  pal-word الآن  |  pal-word وايد
+exec "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/pal-sbx" pal_word.py "$@"

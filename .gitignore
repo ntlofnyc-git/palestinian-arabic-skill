@@ -1,0 +1,6 @@
+.venv/
+.camel-data/
+__pycache__/
+*.pyc
+.local/
+data/

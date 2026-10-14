@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# pal-learn: save a word correction so every later pal-check / pal-word picks it up.
+#   pal-learn "<wrong word/phrase>" "<what to use instead>" "<optional note>"
+#   pal-learn --list
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+F="${PAL_CORRECTIONS:-$ROOT/corrections.tsv}"
+if [ "${1:-}" = "--list" ]; then grep -v '^#' "$F" || true; exit 0; fi
+[ -n "${1:-}" ] && [ -n "${2:-}" ] || { sed -n 3,4p "$0"; exit 2; }
+W=$(printf '%s' "$1" | tr '\t\n' '  '); R=$(printf '%s' "$2" | tr '\t\n' '  '); N=$(printf '%s' "${3:-correction}" | tr '\t\n' '  ')
+python3 -I - "$F" "$W" "$R" "$N" <<'PY'
+import sys, datetime
+f, w, r, n = sys.argv[1:]
+d = datetime.date.today().isoformat()
+L = open(f, encoding='utf-8').read().splitlines()
+row = '\t'.join([w, r, d, n])
+if any(l.split('\t')[0] == w for l in L):
+    L = [row if l.split('\t')[0] == w else l for l in L]; print(f'updated: {w} → {r}')
+else:
+    L.append(row); print(f'learned: {w} → {r}')
+open(f, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+PY

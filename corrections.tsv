@@ -1,0 +1,8 @@
+# Your own corrections. HIGHEST priority: they override the swap list and the model.
+# wrong	use_instead	date	note
+# add with:  bin/pal-learn "<wrong>" "<right>" "<note>"
+دوس	اضغط	2026-10-14	"press": دوس is less clear to many readers, use اضغط
+تظبّط	ترتّب	2026-10-14	unclear to many readers
+تظبط	ترتّب	2026-10-14	unclear to many readers
+براحتك	وقت ما بدّك	2026-10-14	can sound off in writing
+مجدول	محجوز / مرتّب	2026-10-14	too formal/stiff ("scheduled")
